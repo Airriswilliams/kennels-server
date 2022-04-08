@@ -1,17 +1,64 @@
+import sqlite3
+import json
+from models import Customer
+
 CUSTOMERS = [
     {
         "id": 1,
         "name": "Charles Burton",
+        "email": "cburton@kennel.com",
+        "password": "cburton",
+        "verifyPassword": "cburton"
     },
     {
         "id": 2,
         "name": "Harold Pointer",
+        "email": "hpointer@kennel.com",
+        "password": "hpointer",
+        "verifyPassword": "hpointer"
     }
 ]
 
 
 def get_all_customers():
-    return CUSTOMERS
+    # Open a connection to the database
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+
+        # Just use these. It's a Black Box.
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        # Write the SQL query to get the information you want
+        db_cursor.execute("""
+        SELECT
+            c.id,
+            c.name,
+            c.email,
+            c.password,
+            c.verifyPassword
+        FROM customer c
+        """)
+
+        # Initialize an empty list to hold all customer representations
+        customers = []
+
+        # Convert rows of data into a Python list
+        dataset = db_cursor.fetchall()
+
+        # Iterate list of data returned from database
+        for row in dataset:
+
+            # Create an customer instance from the current row.
+            # Note that the database fields are specified in
+            # exact order of the parameters defined in the
+            # Customer class above.
+            customer = Customer(row['id'], row['name'], row['email'],
+                                row['password'], row['verifyPassword'])
+
+            customers.append(customer.__dict__)
+
+    # Use `json` package to properly serialize list as JSON
+    return json.dumps(customers)
 
 # Function with a single parameter
 
